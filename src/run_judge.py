@@ -71,7 +71,7 @@ def run_judge(
         try:
             print(prompt[0]["content"])
             print(prompt[1]["content"])
-            result = generate(prompt, provider=provider, **kwargs)
+            result = generate(prompt, provider=provider, json_mode=True, **kwargs)
             print(result)
             print()
             print("=============")

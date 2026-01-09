@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 from openai import OpenAI
 
@@ -18,9 +18,10 @@ class LLMProvider:
         system_prompt: str = "",
         merge_system: bool = False,
         params: Dict[str, Any] = DEFAULT_PARAMS,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         self.model_name = model_name
+        self.base_url = base_url
         self.system_prompt = system_prompt
         self.api = OpenAI(base_url=base_url, api_key=api_key)
         self.params = params

@@ -30,7 +30,11 @@ def parse_output(output: str) -> Dict[str, Any]:
 
 
 def generate(
-    messages: ChatMessages, provider: LLMProvider, fix_double_spaces: bool = True, **kwargs: Any
+    messages: ChatMessages,
+    provider: LLMProvider,
+    fix_double_spaces: bool = True,
+    json_mode: bool = False,
+    **kwargs: Any,
 ) -> str:
     params = copy.deepcopy(provider.params)
     for k, v in kwargs.items():
@@ -40,7 +44,9 @@ def generate(
 
     # If we have additional system prompt in provider, add it to messages
     if provider.system_prompt != "" and messages_copy[0]["role"] == "system":
-        messages_copy[0]["content"] = provider.system_prompt + "\n\n" + messages_copy[0]["content"]
+        messages_copy[0]["content"] = (
+            provider.system_prompt + "\n\n" + messages_copy[0]["content"]
+        )
 
     if provider.merge_system and messages_copy[0]["role"] == "system":
         system_content = messages_copy[0]["content"]
@@ -48,7 +54,20 @@ def generate(
         messages_copy = messages_copy[1:]
         messages_copy[0]["content"] = f"{system_content}\n\nUser: {user_content}"
 
-    casted_messages = [cast(ChatCompletionMessageParam, message) for message in messages_copy]
+    casted_messages = [
+        cast(ChatCompletionMessageParam, message) for message in messages_copy
+    ]
+
+    # Anthropic-specific adjustments
+    if "anthropic" in provider.base_url:
+        # JSON mode not supported by Anthropic, use parse_output instead
+        # Also, Anthropic doesn't allow both temperature and top_p
+        if "top_p" in params:
+            del params["top_p"]
+    elif json_mode:
+        # Enable structured JSON output if requested (OpenAI compatible)
+        params["response_format"] = {"type": "json_object"}
+
     chat_completion = provider.api.chat.completions.create(
         model=provider.model_name, messages=casted_messages, **params
     )

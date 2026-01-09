@@ -97,7 +97,7 @@ def run_interrogator(
                 print(f'{m["role"]}: {m["content"]}')
                 print()
             print()
-            result = generate(prompt, provider=provider, **kwargs)
+            result = generate(prompt, provider=provider, json_mode=True, **kwargs)
             print(result)
             output = InterrogatorOutput.from_dict(parse_output(result))
             print()
